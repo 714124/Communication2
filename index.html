@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>おしゃべりボード - かんたん版</title>
+    <title>おしゃべりボード - かんたん特大ワン画面版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* スクロールや引っ張りを完全禁止して1画面にフィット */
@@ -52,9 +52,9 @@
         }
 
         @media (orientation: landscape) {
-            header { height: 70px; padding: 4px; }
-            footer { height: 80px !important; padding: 4px !important; }
-            .sidebar { width: 180px !important; }
+            header { height: 75px; padding: 4px; }
+            footer { height: 85px !important; padding: 4px !important; }
+            .sidebar { width: 190px !important; }
         }
 
         .main-container {
@@ -65,7 +65,7 @@
             min-height: 0;
         }
 
-        /* サイドバー：スクロール可能 */
+        /* 左側サイドバー（種類タブ）：スクロール可能 */
         .sidebar {
             width: 150px; 
             overflow-y: auto;
@@ -91,7 +91,7 @@
 
         @media (orientation: landscape) {
             .sidebar { width: 190px; }
-            .sidebar > div { min-height: 50px; }
+            .sidebar > div { min-height: 55px; }
         }
 
         .content-area {
@@ -167,7 +167,7 @@
             width: 100%;
         }
         
-        /* アクションボタン（けす、プラスなど） */
+        /* アクションボタン */
         .action-btn {
             flex: 1;
             height: 100%;
@@ -186,49 +186,64 @@
             box-shadow: 0 2px 0 rgba(0,0,0,0.1);
         }
 
-        /* 縦スクロール可能エリア */
+        /* 縦2段（4枚）の時にスクロール不要で1画面にぴったり収まるよう、高さを動的計算 */
         .card-grid-container {
             flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* (100dvh - header[95px] - footer[100px] - content-areaパディング[24px] - gridの隙間[16px]) / 2 */
+            grid-auto-rows: calc((100dvh - 235px) / 2);
+            gap: 16px;
             overflow-y: auto;
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+
+        @media (orientation: landscape) {
+            .card-grid-container {
+                /* 横向き時の高さ計算: (100dvh - header[75px] - footer[85px] - content-areaパディング[24px] - gridの隙間[16px]) / 2 */
+                grid-auto-rows: calc((100dvh - 200px) / 2);
+                gap: 12px;
+            }
         }
 
         /* コミュニケーションカード（特大サイズ・太枠） */
         .card {
-            aspect-ratio: 1.1 / 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 24px;
-            border: 4px solid #cbd5e1;
+            border-radius: 20px;
+            border: 5px solid #cbd5e1;
             box-shadow: 0 6px 12px rgba(0,0,0,0.08);
             cursor: pointer;
             position: relative;
             background: white;
             transition: transform 0.05s, background-color 0.05s;
-            padding: 8px;
+            padding: 12px;
+            height: 100%;
         }
         .card:active {
             background-color: #e0f2fe;
-            transform: scale(0.95);
+            transform: scale(0.96);
             border-color: #3b82f6;
         }
 
+        /* カードの文字：サイズを調整して綺麗に収まるように */
         .card-text {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 900;
             color: #1e293b;
-            margin-top: 6px;
+            margin-top: 8px;
             text-align: center;
             word-break: break-all;
             line-height: 1.2;
         }
 
-        /* 視覚シンボル用の特大絵文字 */
+        /* 視覚シンボル用の特大絵文字：縮小に合わせてバランスの良い大きさに */
         .card-emoji {
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             line-height: 1;
         }
 
@@ -246,24 +261,28 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* バッジ（削除ボタンなど） */
-        .del-badge {
+        /* 編集・削除バッジ：通常は隠れており、編集モード時のみ出現。赤のやさしいマイナスマークに */
+        .edit-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -10px;
+            right: -10px;
             background: #ef4444;
             color: white;
-            width: 34px;
-            height: 34px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 900;
-            border: 3px solid white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.25);
-            z-index: 5;
+            border: 4px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .edit-badge:active {
+            background: #b91c1c;
+            transform: scale(0.9);
         }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -339,8 +358,13 @@
         <div class="main-container">
             <aside id="sidebar" class="sidebar no-scrollbar"></aside>
             <main class="content-area">
-                <!-- カードグリッド：大きめ（モバイルでは2列、少し大きい画面では3列〜に自動調整） -->
-                <div id="card-grid" class="card-grid-container grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 no-scrollbar"></div>
+                <!-- 編集モードの時だけ上部にお知らせを出す -->
+                <div id="edit-mode-banner" class="hidden bg-red-500 text-white text-center py-2 px-4 rounded-xl mb-3 font-black text-lg animate-pulse">
+                    ⚠️ いまは 「なおす・へらす」 モードです。おわったら ＋/ー をおしてね。
+                </div>
+
+                <!-- カードグリッド：押し間違えを防ぐために「2列」に固定してアイコンを巨大化 -->
+                <div id="card-grid" class="card-grid-container no-scrollbar"></div>
                 
                 <!-- ひらがなキーボード -->
                 <div id="keyboard-area" class="hidden h-full w-full">
@@ -360,20 +384,23 @@
             <button onclick="clearAll()" class="action-btn bg-red-100 text-red-600 border-4 border-red-300">ぜんぶ けす</button>
             <button onclick="speakAll()" id="speak-btn" class="action-btn bg-blue-600 text-white text-4xl hidden border-b-8 border-blue-800">📢</button>
             <button onclick="toggleKeyboard()" id="kb-toggle" class="action-btn bg-green-500 text-white border-b-8 border-green-700">もじをうつ</button>
-            <button id="add-btn" onclick="openChoiceModal()" class="action-btn bg-orange-400 text-white text-4xl border-b-8 border-orange-600">+</button>
+            <!-- ＋/ー ボタン -->
+            <button id="add-btn" onclick="openChoiceModal()" class="action-btn bg-orange-400 text-white text-3xl border-b-8 border-orange-600 font-black">＋ / ー</button>
         </footer>
     </div>
 
     <!-- ==================== カスタムダイアログ（モーダル） ==================== -->
     
-    <!-- 1. ふやす 選択モーダル -->
+    <!-- 1. 「＋ / ー」 選択モーダル -->
     <div id="choice-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-slate-300 animate-bounce-short">
-            <h3 class="font-black mb-6 text-2xl text-center text-slate-800">なにを ふやす？</h3>
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-slate-300">
+            <h3 class="font-black mb-6 text-2xl text-center text-slate-800">なにを する？</h3>
             <div class="flex flex-col gap-4">
-                <button onclick="openAddModal()" class="w-full py-5 bg-blue-50 text-blue-600 rounded-2xl font-black text-xl border-4 border-blue-200 active:scale-95 transition-transform">カードを つくる</button>
-                <button onclick="openAddCatModal()" class="w-full py-5 bg-orange-50 text-orange-600 rounded-2xl font-black text-xl border-4 border-orange-200 active:scale-95 transition-transform">しゅるいを つくる</button>
-                <button onclick="closeChoiceModal()" class="w-full py-4 mt-2 bg-gray-100 text-gray-500 rounded-2xl font-black">やめる</button>
+                <button onclick="openAddModal()" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xl border-4 border-blue-200 active:scale-95 transition-transform">➕ カードを つくる</button>
+                <button onclick="openAddCatModal()" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-black text-xl border-4 border-orange-200 active:scale-95 transition-transform">➕ しゅるいを つくる</button>
+                <!-- へらす・なおすモードのトグルボタン -->
+                <button id="toggle-edit-mode-btn" onclick="toggleEditMode()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-black text-xl border-4 border-red-200 active:scale-95 transition-transform">❌ へらす ・ なおす</button>
+                <button onclick="closeChoiceModal()" class="w-full py-3 mt-2 bg-gray-100 text-gray-500 rounded-2xl font-black">やめる</button>
             </div>
         </div>
     </div>
@@ -385,10 +412,10 @@
             <p id="target-category-label" class="text-center text-md font-bold text-slate-500 mb-4"></p>
             
             <label class="block text-md font-black text-slate-600 mb-1">おしゃべりする ことば</label>
-            <input type="text" id="new-text" placeholder="例：おなかすいた" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-4 focus:border-blue-400 outline-none text-xl font-bold">
+            <input type="text" id="new-text" placeholder="例：こんにちは" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-4 focus:border-blue-400 outline-none text-xl font-bold">
             
             <label class="block text-md font-black text-slate-600 mb-1">え文字（え文字を1ついれてね）</label>
-            <input type="text" id="new-icon" placeholder="例：😋" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-6 focus:border-blue-400 outline-none text-2xl text-center">
+            <input type="text" id="new-icon" placeholder="例：😊" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-6 focus:border-blue-400 outline-none text-2xl text-center">
             
             <div class="flex gap-4">
                 <button onclick="closeAddModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-black text-gray-600 border-b-4 border-gray-300">やめる</button>
@@ -410,7 +437,7 @@
         </div>
     </div>
 
-    <!-- 4. カスタム確認ダイアログ (confirmの代替) -->
+    <!-- 4. カスタム確認ダイアログ -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-red-300 text-center">
             <div class="text-6xl mb-4">⚠️</div>
@@ -423,9 +450,35 @@
         </div>
     </div>
 
+    <!-- 5. 「カード設定」選択モーダル -->
+    <div id="card-edit-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-red-400 text-center">
+            <div class="text-5xl mb-4">⚙️</div>
+            <h3 class="font-black mb-2 text-2xl text-slate-800">カードの せってい</h3>
+            <p id="editing-card-name" class="text-xl font-bold text-slate-500 mb-6"></p>
+            <div class="flex flex-col gap-4">
+                <button id="card-rename-btn" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-lg border-4 border-blue-200 active:scale-95">なまえを かえる</button>
+                <button id="card-delete-btn" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-black text-lg border-4 border-red-200 active:scale-95">このカードを けす</button>
+                <button onclick="closeCardEditModal()" class="w-full py-3 mt-2 bg-gray-100 text-gray-500 rounded-2xl font-black">やめる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. カード名変更入力モーダル -->
+    <div id="card-rename-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-blue-400">
+            <h3 class="font-black mb-4 text-2xl text-center text-slate-800">なまえを かえる</h3>
+            <input type="text" id="rename-card-input" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-6 focus:border-blue-400 outline-none text-xl font-bold">
+            <div class="flex gap-4">
+                <button onclick="closeCardRenameModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-black text-gray-600 border-b-4 border-gray-300">やめる</button>
+                <button id="save-rename-btn" class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-xl shadow-lg border-b-4 border-blue-800">かえる</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== スクリプト ==================== -->
     <script>
-        // デフォルトカテゴリー（生徒に直感的、かつ実態を低く設定して数を厳選）
+        // 最初から用意するカテゴリーの種類
         const defaultCategories = [
             { id: 'greet', name: 'あいさつ', color: 'bg-emerald-500', custom: false },
             { id: 'request', name: 'おねがい', color: 'bg-amber-500', custom: false },
@@ -433,45 +486,13 @@
             { id: 'feel', name: 'きもち', color: 'bg-rose-500', custom: false }
         ];
 
-        // デフォルトフレーズ（数字1〜10、および生活に極めて重要なものを中心に構成）
-        const defaultPhrases = [
-            // あいさつ
-            { cat: 'greet', text: 'ありがとう', icon: '🙏', custom: false },
-            { cat: 'greet', text: 'こんにちは', icon: '😊', custom: false },
-            { cat: 'greet', text: 'おはよう', icon: '☀️', custom: false },
-            { cat: 'greet', text: 'さようなら', icon: '👋', custom: false },
-            
-            // おねがい
-            { cat: 'request', text: 'おちゃ', icon: '🍵', custom: false },
-            { cat: 'request', text: 'トイレ', icon: '🚻', custom: false },
-            { cat: 'request', text: 'てつだって', icon: '🤝', custom: false },
-            { cat: 'request', text: 'おわり', icon: '🆗', custom: false },
-            { cat: 'request', text: 'まって', icon: '✋', custom: false },
-            { cat: 'request', text: 'もういっかい', icon: '🔄', custom: false },
-
-            // すうじ (1〜10をすべてカバー)
-            { cat: 'number', text: '1', icon: '１', custom: false },
-            { cat: 'number', text: '2', icon: '２', custom: false },
-            { cat: 'number', text: '3', icon: '３', custom: false },
-            { cat: 'number', text: '4', icon: '４', custom: false },
-            { cat: 'number', text: '5', icon: '５', custom: false },
-            { cat: 'number', text: '6', icon: '６', custom: false },
-            { cat: 'number', text: '7', icon: '７', custom: false },
-            { cat: 'number', text: '8', icon: '８', custom: false },
-            { cat: 'number', text: '9', icon: '９', custom: false },
-            { cat: 'number', text: '10', icon: '🔟', custom: false },
-
-            // きもち
-            { cat: 'feel', text: 'うれしい', icon: '😆', custom: false },
-            { cat: 'feel', text: 'いたい', icon: '🤕', custom: false },
-            { cat: 'feel', text: 'つかれた', icon: '😫', custom: false },
-            { cat: 'feel', text: 'いやだ', icon: '🙅', custom: false }
-        ];
+        // 最初からはカード（アイコン）を作らず、ユーザーが自由につくれるように空にする
+        const defaultPhrases = [];
 
         let categories = JSON.parse(localStorage.getItem('kantan_board_cats')) || defaultCategories;
         let phrases = JSON.parse(localStorage.getItem('kantan_board_phrases')) || defaultPhrases;
         
-        // 50音表（よりタップしやすく調整、濁点・小文字・数字など）
+        // 50音表（濁点・小文字・長音）
         const kanaStd = [
             ['あ','い','う','え','お'],
             ['か','き','く','け','こ'],
@@ -488,6 +509,8 @@
         let currentCat = 'greet';
         let selected = [];
         let speechVoice = null;
+        let editingCard = null; // 現在編集中のカード情報
+        let isEditMode = false; // 現在へらす・なおす（編集）モードかどうか
 
         // 初期化
         function init() {
@@ -508,7 +531,6 @@
         function initSpeech() {
             const loadVoices = () => {
                 const voices = window.speechSynthesis.getVoices();
-                // 日本語の声を最優先で選択
                 speechVoice = voices.find(v => v.lang.includes('ja-JP') || v.lang.includes('ja'));
             };
             if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -523,7 +545,8 @@
             side.innerHTML = categories.map(c => `
                 <div class="relative w-full">
                     <button onclick="setCat('${c.id}')" class="category-btn ${c.color} ${currentCat === c.id ? 'active' : ''}">${c.name}</button>
-                    ${c.custom ? `<button onclick="triggerDeleteCategory('${c.id}', event)" class="del-badge">×</button>` : ''}
+                    <!-- カテゴリの削除ボタンも編集モード中のみ表示 -->
+                    ${c.custom && isEditMode ? `<button onclick="triggerDeleteCategory('${c.id}', event)" class="del-badge">×</button>` : ''}
                 </div>
             `).join('');
         }
@@ -547,20 +570,54 @@
 
             const list = phrases.filter(p => p.cat === currentCat);
             if (list.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-16 text-slate-400 font-black text-xl">カードが ありません</div>`;
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-20 px-4">
+                        <div class="text-6xl mb-4">✨</div>
+                        <div class="text-slate-500 font-black text-2xl mb-2">まだ カードが ありません</div>
+                        <div class="text-blue-500 font-bold text-lg leading-relaxed">
+                            したの <span class="bg-slate-100 px-2 py-1 rounded-lg border-2 border-slate-300">＋ / ー</span> ボタンを おして<br>
+                            じぶんだけの カードを つくってね！
+                        </div>
+                    </div>
+                `;
                 return;
             }
             list.forEach(p => {
                 const card = document.createElement('div');
                 card.className = "card";
+                
+                // 編集モードONの場合、右上に赤い「ー」マークの編集ボタンを出す
+                const showEditBadge = isEditMode;
+                
                 card.innerHTML = `
                     <span class="card-emoji">${p.icon}</span>
                     <span class="card-text">${p.text}</span>
-                    ${p.custom ? `<button onclick="triggerDeletePhrase('${p.text}', '${p.cat}', event)" class="del-badge">×</button>` : ''}
+                    ${showEditBadge ? `<button onclick="openCardEditModal('${p.text}', '${p.cat}', event)" class="edit-badge">ー</button>` : ''}
                 `;
                 card.onclick = () => addPhraseToDisplay(p.text);
                 grid.appendChild(card);
             });
+        }
+
+        // へらす・なおす（編集）モードのトグル切り替え
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            closeChoiceModal();
+            
+            const banner = document.getElementById('edit-mode-banner');
+            
+            if (isEditMode) {
+                banner.classList.remove('hidden');
+                document.getElementById('add-btn').classList.replace('bg-orange-400', 'bg-red-500');
+                document.getElementById('add-btn').classList.replace('border-orange-600', 'border-red-700');
+            } else {
+                banner.classList.add('hidden');
+                document.getElementById('add-btn').classList.replace('bg-red-500', 'bg-orange-400');
+                document.getElementById('add-btn').classList.replace('border-red-700', 'border-orange-600');
+            }
+            
+            renderSidebar();
+            renderCards();
         }
 
         // キーボード表示切り替え
@@ -607,7 +664,7 @@
                 'は':'ば', 'ひ':'び', 'ふ':'ぶ', 'へ':'べ', 'ほ':'ぼ',
                 'が':'か', 'ぎ':'き', 'ぐ':'く', 'げ':'け', 'ご':'こ',
                 'ざ':'さ', 'じ':'し', 'ず':'す', 'ぜ':'せ', 'ぞ':'そ',
-                'だ':'た', 'ぢ':'ち', 'づ':'つ', 'で':'て', 'ど':'と',
+                'だ':'た', 'ぢ':'ち', 'づ':'つ', 'て':'で', 'と':'ど',
                 'ば':'は', 'び':'ひ', 'ぶ':'ふ', 'べ':'へ', 'ぼ':'ほ'
             };
             if (map[char]) {
@@ -650,6 +707,7 @@
             }
         }
 
+        // 文字入力
         function addChar(c) {
             if (c === '゛') {
                 applyDakuten();
@@ -705,7 +763,22 @@
 
         // ==================== モーダル関連処理 ====================
 
-        function openChoiceModal() { document.getElementById('choice-modal').classList.remove('hidden'); }
+        function openChoiceModal() { 
+            // 選択画面を開くときに、現在のモードに応じて「へらす・なおす」のボタンテキストを変化させる
+            const editBtn = document.getElementById('toggle-edit-mode-btn');
+            if (isEditMode) {
+                editBtn.innerText = "おわる (あんぜんモード)";
+                editBtn.classList.replace('bg-red-50', 'bg-green-50');
+                editBtn.classList.replace('text-red-600', 'text-green-600');
+                editBtn.classList.replace('border-red-200', 'border-green-200');
+            } else {
+                editBtn.innerText = "❌ へらす ・ なおす";
+                editBtn.classList.replace('bg-green-50', 'bg-red-50');
+                editBtn.classList.replace('text-green-600', 'text-red-600');
+                editBtn.classList.replace('border-green-200', 'border-red-200');
+            }
+            document.getElementById('choice-modal').classList.remove('hidden'); 
+        }
         function closeChoiceModal() { document.getElementById('choice-modal').classList.add('hidden'); }
         
         function openAddModal() { 
@@ -721,6 +794,54 @@
             document.getElementById('add-cat-modal').classList.remove('hidden'); 
         }
         function closeAddCatModal() { document.getElementById('add-cat-modal').classList.add('hidden'); }
+
+        // カード設定（編集）モーダル
+        function openCardEditModal(text, cat, e) {
+            e.stopPropagation(); // 通常タップ（読み上げ）イベントの発生を阻止！
+            editingCard = { text, cat };
+            document.getElementById('editing-card-name').innerText = `「${text}」のカード`;
+            document.getElementById('card-edit-modal').classList.remove('hidden');
+
+            // 削除ボタンの挙動をバインド
+            document.getElementById('card-delete-btn').onclick = () => {
+                closeCardEditModal();
+                triggerDeletePhrase(editingCard.text, editingCard.cat);
+            };
+
+            // 名前変更ボタンの挙動をバインド
+            document.getElementById('card-rename-btn').onclick = () => {
+                closeCardEditModal();
+                openCardRenameModal(editingCard.text);
+            };
+        }
+        function closeCardEditModal() {
+            document.getElementById('card-edit-modal').classList.add('hidden');
+            editingCard = null;
+        }
+
+        // カード名前変更モーダル
+        function openCardRenameModal(oldText) {
+            document.getElementById('rename-card-input').value = oldText;
+            document.getElementById('card-rename-modal').classList.remove('hidden');
+
+            document.getElementById('save-rename-btn').onclick = () => {
+                const newText = document.getElementById('rename-card-input').value.trim();
+                if (newText && newText !== oldText) {
+                    phrases = phrases.map(p => {
+                        if (p.text === oldText && p.cat === editingCard.cat) {
+                            return { ...p, text: newText };
+                        }
+                        return p;
+                    });
+                    localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
+                    renderCards();
+                }
+                closeCardRenameModal();
+            };
+        }
+        function closeCardRenameModal() {
+            document.getElementById('card-rename-modal').classList.add('hidden');
+        }
 
         // カスタム確認ダイアログの表示
         let onConfirmSuccess = null;
@@ -785,14 +906,13 @@
             renderCards();
         }
 
-        // カード削除確認
-        function triggerDeletePhrase(text, cat, e) {
-            e.stopPropagation();
+        // カード削除確認（設定メニューからコール）
+        function triggerDeletePhrase(text, cat) {
             showCustomConfirm(
                 "カードを けしますか？",
                 `「${text}」のカードを けします。よろしいですか？`,
                 () => {
-                    phrases = phrases.filter(p => !(p.text === text && p.cat === cat && p.custom === true));
+                    phrases = phrases.filter(p => !(p.text === text && p.cat === cat));
                     localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
                     renderCards();
                 }
