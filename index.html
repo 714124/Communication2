@@ -398,7 +398,7 @@
             <div class="flex flex-col gap-4">
                 <button onclick="openAddModal()" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xl border-4 border-blue-200 active:scale-95 transition-transform">➕ カードを つくる</button>
                 <button onclick="openAddCatModal()" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-black text-xl border-4 border-orange-200 active:scale-95 transition-transform">➕ しゅるいを つくる</button>
-                <!-- へらす・なおすモードのトグルボタン -->
+                <!-- へらす・なおすモード of トグルボタン -->
                 <button id="toggle-edit-mode-btn" onclick="toggleEditMode()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-black text-xl border-4 border-red-200 active:scale-95 transition-transform">❌ へらす ・ なおす</button>
                 <button onclick="closeChoiceModal()" class="w-full py-3 mt-2 bg-gray-100 text-gray-500 rounded-2xl font-black">やめる</button>
             </div>
@@ -486,7 +486,7 @@
             { id: 'feel', name: 'きもち', color: 'bg-rose-500', custom: false }
         ];
 
-        // 最初からはカード（アイコン）を作らず、ユーザーが自由につくれるように空にする
+        // 最初からはカードを作らず、ユーザーが自由につくれるように空にする
         const defaultPhrases = [];
 
         let categories = JSON.parse(localStorage.getItem('kantan_board_cats')) || defaultCategories;
@@ -527,28 +527,56 @@
             }, { passive: false });
         }
 
-        // 音声エンジン設定
+        // 音声エンジン設定 (try-catchで徹底保護し、システムエラーのフリーズを完全回避)
         function initSpeech() {
-            const loadVoices = () => {
-                const voices = window.speechSynthesis.getVoices();
-                speechVoice = voices.find(v => v.lang.includes('ja-JP') || v.lang.includes('ja'));
-            };
-            if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                window.speechSynthesis.onvoiceschanged = loadVoices;
+            try {
+                if (!window.speechSynthesis) return;
+                const loadVoices = () => {
+                    try {
+                        const voices = window.speechSynthesis.getVoices();
+                        if (voices && voices.length > 0) {
+                            speechVoice = voices.find(v => v.lang.includes('ja-JP') || v.lang.includes('ja'));
+                        }
+                    } catch (e) {
+                        console.error("Voices load error:", e);
+                    }
+                };
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                }
+                loadVoices();
+            } catch (e) {
+                console.error("Speech init error:", e);
             }
-            loadVoices();
         }
 
         // サイドバーカテゴリーの描画
         function renderSidebar() {
             const side = document.getElementById('sidebar');
-            side.innerHTML = categories.map(c => `
-                <div class="relative w-full">
-                    <button onclick="setCat('${c.id}')" class="category-btn ${c.color} ${currentCat === c.id ? 'active' : ''}">${c.name}</button>
-                    <!-- カテゴリの削除ボタンも編集モード中のみ表示 -->
-                    ${c.custom && isEditMode ? `<button onclick="triggerDeleteCategory('${c.id}', event)" class="del-badge">×</button>` : ''}
-                </div>
-            `).join('');
+            side.innerHTML = '';
+            categories.forEach(c => {
+                const container = document.createElement('div');
+                container.className = "relative w-full";
+                
+                const btn = document.createElement('button');
+                btn.className = `category-btn ${c.color} ${currentCat === c.id ? 'active' : ''}`;
+                btn.innerText = c.name;
+                btn.onclick = () => setCat(c.id);
+                container.appendChild(btn);
+
+                // カテゴリの削除ボタンも編集モード中のみ表示
+                if (c.custom && isEditMode) {
+                    const delBadge = document.createElement('button');
+                    delBadge.className = "del-badge";
+                    delBadge.innerText = "×";
+                    delBadge.onclick = (e) => {
+                        e.stopPropagation();
+                        triggerDeleteCategory(c.id);
+                    };
+                    container.appendChild(delBadge);
+                }
+                side.appendChild(container);
+            });
         }
 
         // カテゴリー切り替え
@@ -582,18 +610,29 @@
                 `;
                 return;
             }
+            
             list.forEach(p => {
                 const card = document.createElement('div');
                 card.className = "card";
                 
-                // 編集モードONの場合、右上に赤い「ー」マークの編集ボタンを出す
-                const showEditBadge = isEditMode;
-                
                 card.innerHTML = `
                     <span class="card-emoji">${p.icon}</span>
                     <span class="card-text">${p.text}</span>
-                    ${showEditBadge ? `<button onclick="openCardEditModal('${p.text}', '${p.cat}', event)" class="edit-badge">ー</button>` : ''}
                 `;
+
+                // 編集（消す・なおす）モードONの場合、右上に赤い「ー」マークの編集ボタンを出す
+                if (isEditMode) {
+                    const badge = document.createElement('button');
+                    badge.className = "edit-badge";
+                    badge.innerText = "ー";
+                    // 子要素を確実にイベント停止させて設定モーダルを呼び出す（発音干渉バグを完全に解消）
+                    badge.onclick = (e) => {
+                        e.stopPropagation();
+                        openCardEditModal(p.text, p.cat);
+                    };
+                    card.appendChild(badge);
+                }
+
                 card.onclick = () => addPhraseToDisplay(p.text);
                 grid.appendChild(card);
             });
@@ -612,6 +651,7 @@
                 document.getElementById('add-btn').classList.replace('border-orange-600', 'border-red-700');
             } else {
                 banner.classList.add('hidden');
+                document.getElementById('add-btn').classList.replace('bg-red-50', 'bg-orange-400');
                 document.getElementById('add-btn').classList.replace('bg-red-500', 'bg-orange-400');
                 document.getElementById('add-btn').classList.replace('border-red-700', 'border-orange-600');
             }
@@ -656,7 +696,7 @@
         function applyDakuten() {
             if (selected.length === 0) return;
             const lastIdx = selected.length - 1;
-            const char = selected[lastIdx];
+            const char = offset = selected[lastIdx];
             const map = {
                 'か':'が', 'き':'ぎ', 'く':'ぐ', 'け':'げ', 'こ':'ご',
                 'さ':'ざ', 'し':'じ', 'す':'ず', 'せ':'ぜ', 'そ':'ぞ',
@@ -722,49 +762,57 @@
             }
         }
 
-        // 表示部にフレーズ（カードの言葉）を追加して喋る
+        // 表示部にフレーズを追加して喋る
         function addPhraseToDisplay(text) {
             selected.push(text);
             updateDisplay();
             speak(text);
         }
 
+        // 1文字消去
         function removeLastChar() {
             if (selected.length === 0) return;
             selected.pop();
             updateDisplay();
         }
 
+        // 全消去
         function clearAll() { 
             selected = []; 
             updateDisplay(); 
         }
 
+        // 表示エリア更新
         function updateDisplay() {
             const area = document.getElementById('display-area');
             area.innerHTML = selected.map(t => `<div class="tag">${t}</div>`).join('');
             area.scrollTop = area.scrollHeight;
         }
 
+        // 全文発音
         function speakAll() {
             const fullText = selected.join('');
             if (fullText) speak(fullText);
         }
 
+        // 音声合成
         function speak(text) {
             if (!text) return;
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            if (speechVoice) u.voice = speechVoice;
-            u.lang = 'ja-JP';
-            u.rate = 0.9; // 少しだけゆっくり、聞き取りやすく
-            window.speechSynthesis.speak(u);
+            try {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                if (speechVoice) u.voice = speechVoice;
+                u.lang = 'ja-JP';
+                u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            } catch (e) {
+                console.warn("Speech Synthesis blocked or error:", e);
+            }
         }
 
-        // ==================== モーダル関連処理 ====================
-
+        // モーダル関連処理
         function openChoiceModal() { 
-            // 選択画面を開くときに、現在のモードに応じて「へらす・なおす」のボタンテキストを変化させる
             const editBtn = document.getElementById('toggle-edit-mode-btn');
             if (isEditMode) {
                 editBtn.innerText = "おわる (あんぜんモード)";
@@ -795,20 +843,17 @@
         }
         function closeAddCatModal() { document.getElementById('add-cat-modal').classList.add('hidden'); }
 
-        // カード設定（編集）モーダル
-        function openCardEditModal(text, cat, e) {
-            e.stopPropagation(); // 通常タップ（読み上げ）イベントの発生を阻止！
+        // 設定モーダル
+        function openCardEditModal(text, cat) {
             editingCard = { text, cat };
             document.getElementById('editing-card-name').innerText = `「${text}」のカード`;
             document.getElementById('card-edit-modal').classList.remove('hidden');
 
-            // 削除ボタンの挙動をバインド
             document.getElementById('card-delete-btn').onclick = () => {
                 closeCardEditModal();
                 triggerDeletePhrase(editingCard.text, editingCard.cat);
             };
 
-            // 名前変更ボタンの挙動をバインド
             document.getElementById('card-rename-btn').onclick = () => {
                 closeCardEditModal();
                 openCardRenameModal(editingCard.text);
@@ -819,7 +864,7 @@
             editingCard = null;
         }
 
-        // カード名前変更モーダル
+        // カード名変更
         function openCardRenameModal(oldText) {
             document.getElementById('rename-card-input').value = oldText;
             document.getElementById('card-rename-modal').classList.remove('hidden');
@@ -843,7 +888,7 @@
             document.getElementById('card-rename-modal').classList.add('hidden');
         }
 
-        // カスタム確認ダイアログの表示
+        // 確認ダイアログ
         let onConfirmSuccess = null;
         function showCustomConfirm(title, message, onSuccess) {
             document.getElementById('confirm-title').innerText = title;
@@ -862,7 +907,7 @@
             };
         }
 
-        // カテゴリー追加保存
+        // カテゴリ追加
         function saveNewCategory() {
             const name = document.getElementById('new-cat-name').value.trim();
             if (!name) return;
@@ -875,9 +920,8 @@
             setCat(id);
         }
 
-        // カテゴリー削除確認
-        function triggerDeleteCategory(id, e) {
-            e.stopPropagation();
+        // カテゴリ削除
+        function triggerDeleteCategory(id) {
             const catName = categories.find(c => c.id === id).name;
             showCustomConfirm(
                 "しゅるいを けしますか？",
@@ -893,7 +937,7 @@
             );
         }
 
-        // カード追加保存
+        // カード追加
         function saveNewPhrase() {
             const text = document.getElementById('new-text').value.trim();
             const icon = document.getElementById('new-icon').value.trim() || '⭐️';
@@ -906,7 +950,7 @@
             renderCards();
         }
 
-        // カード削除確認（設定メニューからコール）
+        // カード削除
         function triggerDeletePhrase(text, cat) {
             showCustomConfirm(
                 "カードを けしますか？",
