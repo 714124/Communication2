@@ -54,7 +54,6 @@
         @media (orientation: landscape) {
             header { height: 75px; padding: 4px; }
             footer { height: 85px !important; padding: 4px !important; }
-            .sidebar { width: 190px !important; }
         }
 
         .main-container {
@@ -65,35 +64,7 @@
             min-height: 0;
         }
 
-        /* 左側サイドバー（種類タブ）：スクロール可能 */
-        .sidebar {
-            width: 150px; 
-            overflow-y: auto;
-            background: #f1f5f9;
-            border-right: 4px solid #cbd5e1;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            height: 100%;
-            z-index: 10;
-            touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* カテゴリーボタンを大きく引き伸ばす */
-        .sidebar > div {
-            flex: 1;
-            min-height: 70px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (orientation: landscape) {
-            .sidebar { width: 190px; }
-            .sidebar > div { min-height: 55px; }
-        }
-
+        /* コンテンツエリア：サイドバー撤去により画面いっぱいに表示 */
         .content-area {
             flex: 1;
             overflow: hidden;
@@ -107,35 +78,6 @@
 
         .content-area.has-kb {
             padding: 4px !important;
-        }
-
-        /* カテゴリーボタン（超極太フォント、はっきりした色） */
-        .category-btn {
-            width: 100%;
-            height: 100%;
-            padding: 6px 4px;
-            border-radius: 16px;
-            font-weight: 900;
-            font-size: 1.25rem;
-            color: white;
-            text-align: center;
-            transition: all 0.1s;
-            line-height: 1.2;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.18);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border: 2px solid rgba(0,0,0,0.05);
-        }
-        .category-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
-        }
-        .category-btn.active {
-            filter: brightness(0.85);
-            border: 4px solid #ffffff;
-            box-shadow: inset 0 4px 6px rgba(0,0,0,0.15);
         }
 
         /* テキスト表示ボックス */
@@ -354,9 +296,8 @@
             <div id="display-area" class="display-box no-scrollbar"></div>
         </header>
 
-        <!-- メイン画面（サイドバー ＋ カード or キーボード） -->
+        <!-- メイン画面（カード or キーボード） -->
         <div class="main-container">
-            <aside id="sidebar" class="sidebar no-scrollbar"></aside>
             <main class="content-area">
                 <!-- 編集モードの時だけ上部にお知らせを出す -->
                 <div id="edit-mode-banner" class="hidden bg-red-500 text-white text-center py-2 px-4 rounded-xl mb-3 font-black text-lg animate-pulse">
@@ -397,7 +338,6 @@
             <h3 class="font-black mb-6 text-2xl text-center text-slate-800">なにを する？</h3>
             <div class="flex flex-col gap-4">
                 <button onclick="openAddModal()" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xl border-4 border-blue-200 active:scale-95 transition-transform">➕ カードを つくる</button>
-                <button onclick="openAddCatModal()" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-black text-xl border-4 border-orange-200 active:scale-95 transition-transform">➕ しゅるいを つくる</button>
                 <!-- へらす・なおすモード of トグルボタン -->
                 <button id="toggle-edit-mode-btn" onclick="toggleEditMode()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-black text-xl border-4 border-red-200 active:scale-95 transition-transform">❌ へらす ・ なおす</button>
                 <button onclick="closeChoiceModal()" class="w-full py-3 mt-2 bg-gray-100 text-gray-500 rounded-2xl font-black">やめる</button>
@@ -408,8 +348,7 @@
     <!-- 2. カード作成モーダル -->
     <div id="add-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-blue-300">
-            <h3 class="font-black mb-1 text-2xl text-center text-slate-800">カードを つくる</h3>
-            <p id="target-category-label" class="text-center text-md font-bold text-slate-500 mb-4"></p>
+            <h3 class="font-black mb-4 text-2xl text-center text-slate-800">カードを つくる</h3>
             
             <label class="block text-md font-black text-slate-600 mb-1">おしゃべりする ことば</label>
             <input type="text" id="new-text" placeholder="例：こんにちは" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-4 focus:border-blue-400 outline-none text-xl font-bold">
@@ -424,20 +363,7 @@
         </div>
     </div>
 
-    <!-- 3. カテゴリー追加モーダル -->
-    <div id="add-cat-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-orange-300">
-            <h3 class="font-black mb-4 text-2xl text-center text-slate-800">しゅるいを つくる</h3>
-            <label class="block text-md font-black text-slate-600 mb-1">しゅるいの なまえ</label>
-            <input type="text" id="new-cat-name" placeholder="例：どうぶつ" class="w-full border-4 border-slate-200 p-4 rounded-2xl mb-6 focus:border-orange-400 outline-none text-xl font-bold">
-            <div class="flex gap-4">
-                <button onclick="closeAddCatModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-black text-gray-600 border-b-4 border-gray-300">やめる</button>
-                <button onclick="saveNewCategory()" class="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-black text-xl shadow-lg border-b-4 border-orange-700">できた！</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. カスタム確認ダイアログ -->
+    <!-- 3. カスタム確認ダイアログ -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-red-300 text-center">
             <div class="text-6xl mb-4">⚠️</div>
@@ -450,7 +376,7 @@
         </div>
     </div>
 
-    <!-- 5. 「カード設定」選択モーダル -->
+    <!-- 4. 「カード設定」選択モーダル -->
     <div id="card-edit-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-red-400 text-center">
             <div class="text-5xl mb-4">⚙️</div>
@@ -464,7 +390,7 @@
         </div>
     </div>
 
-    <!-- 6. カード名変更入力モーダル -->
+    <!-- 5. カード名変更入力モーダル -->
     <div id="card-rename-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-4 border-blue-400">
             <h3 class="font-black mb-4 text-2xl text-center text-slate-800">なまえを かえる</h3>
@@ -478,19 +404,35 @@
 
     <!-- ==================== スクリプト ==================== -->
     <script>
-        // 最初から用意するカテゴリーの種類
-        const defaultCategories = [
-            { id: 'greet', name: 'あいさつ', color: 'bg-emerald-500', custom: false },
-            { id: 'request', name: 'おねがい', color: 'bg-amber-500', custom: false },
-            { id: 'number', name: 'すうじ', color: 'bg-indigo-500', custom: false },
-            { id: 'feel', name: 'きもち', color: 'bg-rose-500', custom: false }
-        ];
+        // セキュリティ制限されたブラウザや教育用PC環境でも絶対にエラーで落ちない「安全なストレージ関数」を定義
+        const safeStorage = {
+            getItem: (key) => {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage読み込み制限回避:", e);
+                    return null;
+                }
+            },
+            setItem: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage書き込み制限回避 (メモリにのみ一時保存):", e);
+                }
+            }
+        };
 
         // 最初からはカードを作らず、ユーザーが自由につくれるように空にする
         const defaultPhrases = [];
 
-        let categories = JSON.parse(localStorage.getItem('kantan_board_cats')) || defaultCategories;
-        let phrases = JSON.parse(localStorage.getItem('kantan_board_phrases')) || defaultPhrases;
+        let phrases = [];
+
+        try {
+            phrases = JSON.parse(safeStorage.getItem('kantan_board_phrases')) || defaultPhrases;
+        } catch(e) {
+            phrases = defaultPhrases;
+        }
         
         // 50音表（濁点・小文字・長音）
         const kanaStd = [
@@ -506,7 +448,6 @@
             ['わ','を','ん','小','ー']
         ];
 
-        let currentCat = 'greet';
         let selected = [];
         let speechVoice = null;
         let editingCard = null; // 現在編集中のカード情報
@@ -514,13 +455,25 @@
 
         // 初期化
         function init() {
+            // カードデータのマイグレーション（確実に一意のIDを持たせる）
+            let needsResave = false;
+            phrases = phrases.map(p => {
+                if (!p.id) {
+                    p.id = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    needsResave = true;
+                }
+                return p;
+            });
+            if (needsResave) {
+                safeStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
+            }
+
             initSpeech();
-            renderSidebar();
             renderCards();
             
             // iPad等の引っ張りスクロール対策
             document.addEventListener('touchmove', function(e) {
-                if (e.target.closest('.sidebar, .display-box, .card-grid-container')) {
+                if (e.target.closest('.display-box, .card-grid-container')) {
                     return; 
                 }
                 e.preventDefault();
@@ -550,54 +503,12 @@
             }
         }
 
-        // サイドバーカテゴリーの描画
-        function renderSidebar() {
-            const side = document.getElementById('sidebar');
-            side.innerHTML = '';
-            categories.forEach(c => {
-                const container = document.createElement('div');
-                container.className = "relative w-full";
-                
-                const btn = document.createElement('button');
-                btn.className = `category-btn ${c.color} ${currentCat === c.id ? 'active' : ''}`;
-                btn.innerText = c.name;
-                btn.onclick = () => setCat(c.id);
-                container.appendChild(btn);
-
-                // カテゴリの削除ボタンも編集モード中のみ表示
-                if (c.custom && isEditMode) {
-                    const delBadge = document.createElement('button');
-                    delBadge.className = "del-badge";
-                    delBadge.innerText = "×";
-                    delBadge.onclick = (e) => {
-                        e.stopPropagation();
-                        triggerDeleteCategory(c.id);
-                    };
-                    container.appendChild(delBadge);
-                }
-                side.appendChild(container);
-            });
-        }
-
-        // カテゴリー切り替え
-        function setCat(id) {
-            currentCat = id;
-            document.getElementById('keyboard-area').classList.add('hidden');
-            document.getElementById('card-grid').classList.remove('hidden');
-            document.getElementById('kb-toggle').innerText = "もじをうつ";
-            document.getElementById('speak-btn').classList.add('hidden');
-            document.querySelector('.content-area').classList.remove('has-kb');
-            renderSidebar();
-            renderCards();
-        }
-
         // カード描画
         function renderCards() {
             const grid = document.getElementById('card-grid');
             grid.innerHTML = '';
 
-            const list = phrases.filter(p => p.cat === currentCat);
-            if (list.length === 0) {
+            if (phrases.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center py-20 px-4">
                         <div class="text-6xl mb-4">✨</div>
@@ -611,7 +522,7 @@
                 return;
             }
             
-            list.forEach(p => {
+            phrases.forEach(p => {
                 const card = document.createElement('div');
                 card.className = "card";
                 
@@ -628,7 +539,7 @@
                     // 子要素を確実にイベント停止させて設定モーダルを呼び出す（発音干渉バグを完全に解消）
                     badge.onclick = (e) => {
                         e.stopPropagation();
-                        openCardEditModal(p.text, p.cat);
+                        openCardEditModal(p.id, p.text);
                     };
                     card.appendChild(badge);
                 }
@@ -656,7 +567,6 @@
                 document.getElementById('add-btn').classList.replace('border-red-700', 'border-orange-600');
             }
             
-            renderSidebar();
             renderCards();
         }
 
@@ -730,6 +640,7 @@
             }
         }
 
+        // 小書き（ぁぃぅぇぉ等）
         function applySmall() {
             if (selected.length === 0) return;
             const lastIdx = selected.length - 1;
@@ -831,32 +742,28 @@
         
         function openAddModal() { 
             closeChoiceModal(); 
-            const catInfo = categories.find(c => c.id === currentCat); 
-            document.getElementById('target-category-label').innerText = `いれるところ：${catInfo.name}`; 
             document.getElementById('add-modal').classList.remove('hidden'); 
         }
         function closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
-        
-        function openAddCatModal() { 
-            closeChoiceModal(); 
-            document.getElementById('add-cat-modal').classList.remove('hidden'); 
-        }
-        function closeAddCatModal() { document.getElementById('add-cat-modal').classList.add('hidden'); }
 
         // 設定モーダル
-        function openCardEditModal(text, cat) {
-            editingCard = { text, cat };
+        function openCardEditModal(id, text) {
+            editingCard = { id, text };
             document.getElementById('editing-card-name').innerText = `「${text}」のカード`;
             document.getElementById('card-edit-modal').classList.remove('hidden');
 
             document.getElementById('card-delete-btn').onclick = () => {
+                const targetId = editingCard.id;
+                const targetText = editingCard.text;
                 closeCardEditModal();
-                triggerDeletePhrase(editingCard.text, editingCard.cat);
+                triggerDeletePhrase(targetId, targetText);
             };
 
             document.getElementById('card-rename-btn').onclick = () => {
+                const targetId = editingCard.id;
+                const targetText = editingCard.text;
                 closeCardEditModal();
-                openCardRenameModal(editingCard.text);
+                openCardRenameModal(targetId, targetText);
             };
         }
         function closeCardEditModal() {
@@ -865,7 +772,7 @@
         }
 
         // カード名変更
-        function openCardRenameModal(oldText) {
+        function openCardRenameModal(id, oldText) {
             document.getElementById('rename-card-input').value = oldText;
             document.getElementById('card-rename-modal').classList.remove('hidden');
 
@@ -873,12 +780,12 @@
                 const newText = document.getElementById('rename-card-input').value.trim();
                 if (newText && newText !== oldText) {
                     phrases = phrases.map(p => {
-                        if (p.text === oldText && p.cat === editingCard.cat) {
+                        if (p.id === id) {
                             return { ...p, text: newText };
                         }
                         return p;
                     });
-                    localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
+                    safeStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
                     renderCards();
                 }
                 closeCardRenameModal();
@@ -907,43 +814,14 @@
             };
         }
 
-        // カテゴリ追加
-        function saveNewCategory() {
-            const name = document.getElementById('new-cat-name').value.trim();
-            if (!name) return;
-            const id = 'custom_' + Date.now();
-            categories.push({ id, name, color: 'bg-indigo-500', custom: true });
-            localStorage.setItem('kantan_board_cats', JSON.stringify(categories));
-            document.getElementById('new-cat-name').value = '';
-            closeAddCatModal();
-            renderSidebar();
-            setCat(id);
-        }
-
-        // カテゴリ削除
-        function triggerDeleteCategory(id) {
-            const catName = categories.find(c => c.id === id).name;
-            showCustomConfirm(
-                "しゅるいを けしますか？",
-                `「${catName}」と そのなかのカードが ぜんぶ きえます。`,
-                () => {
-                    categories = categories.filter(c => c.id !== id);
-                    phrases = phrases.filter(p => p.cat !== id);
-                    localStorage.setItem('kantan_board_cats', JSON.stringify(categories));
-                    localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
-                    if (currentCat === id) setCat('greet');
-                    else renderSidebar();
-                }
-            );
-        }
-
         // カード追加
         function saveNewPhrase() {
             const text = document.getElementById('new-text').value.trim();
             const icon = document.getElementById('new-icon').value.trim() || '⭐️';
             if (!text) return;
-            phrases.push({ cat: currentCat, text, icon, custom: true });
-            localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
+            const id = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            phrases.push({ id, text, icon, custom: true });
+            safeStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
             document.getElementById('new-text').value = '';
             document.getElementById('new-icon').value = '';
             closeAddModal();
@@ -951,13 +829,13 @@
         }
 
         // カード削除
-        function triggerDeletePhrase(text, cat) {
+        function triggerDeletePhrase(id, text) {
             showCustomConfirm(
                 "カードを けしますか？",
                 `「${text}」のカードを けします。よろしいですか？`,
                 () => {
-                    phrases = phrases.filter(p => !(p.text === text && p.cat === cat));
-                    localStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
+                    phrases = phrases.filter(p => p.id !== id);
+                    safeStorage.setItem('kantan_board_phrases', JSON.stringify(phrases));
                     renderCards();
                 }
             );
